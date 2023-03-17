@@ -1,48 +1,38 @@
-wait(2)
--- Settings --
+wait(2) -- waits for 2 seconds before starting the script
 
+-- Settings section: 
+-- Sets values for the NPC's walk speed, health, damage, damage delay, damage distance, 
+-- stopping between hits, stop distance, hit animation, view distance, and walking around randomly
+-- Also sets the respawn delay for the NPC
+local WalkSpeed = 10  
+local Health = 100  
+local Damage = 1  
+local DamageDelay = 1  
+local DamageDistance = 1  
+local StopBetweenHit = true  
+local StopDistance = 1  
+local HitAnim = 12640023680  
+local ViewDistance = 8  
+local WalkAroundRandomly = true  
 
--- NPC Settings --
+local RespawnDelay = 20  
 
-local WalkSpeed = 10  -- Walkspeed.
-local Health = 100  -- Health.
-local Damage = 1  -- Damage.
-local DamageDelay = 1  -- Delay Between Each hit.
-local DamageDistance = 1  -- Distance Between The Player To Damage.
-local StopBetweenHit = true  -- If True, NPC Will Stop Moving Each Time It Hits To a Player.
-local StopDistance = 1  -- Indicates How Close The NPC Gets To Stop.
-local HitAnim = 12640023680  -- The Hit Animation ID.
-local ViewDistance = 8  -- The ViewDistance Of The NPC. 1 To inf. Example: if 15, the NPC can see and chase people who are far away.
-local WalkAroundRandomly = true  -- If True NPC Will Walk Around The Area Randomly.
-
-local RespawnDelay = 20  -- The Delay On Respawning.
-
--- Abilities --
-
-local ADelay = 30  -- Delay Between Each Ability Attack.
+-- Abilities section:
+-- Sets values for each of the NPC's abilities, including whether they work or not, damage, distance,
+-- attack length, delay, start/end animations, and more
+local ADelay = 30  
 local Abilities = {
-	
 	ability1 = {
-		work = true,  -- If False, This Ability Will Not Work.
-		-- Default Settings --
-		
-		Damage = 100,  -- Damage.
-		DamageDistance = 10,  -- Distance Between The Player To Damage. 1 to inf.
-		AttackStartLenght = 2,  -- Indicates How Long Will Take Before The Attack Starts. Example: if 2, attack will start after 2 seconds while playing the start animation.
-		AttackLenght = 2,  -- Indicates How Long An Attack Will Last. (Seconds.)
-		AttackDelay = 5,  -- How Much Second Needed For The NPC To Make THIS Ability Attack Again.
-		AttackEndLenght = 2, -- Indicates How Long Will Take In An Attack Ending. Example: if 2, attack will end after 2 seconds while playing the end animation.
-		
-			-- Animations --
-
-		StartAttackAnimId = 12640023680, -- The Anim Will Be Played Before An Ability Attack.
-		AttackAnimId = 12640023680,  -- The Anim Will Be Played On An Ability Attack.
-		EndAttackAnimId = 12640023680,  -- The Anim Will Be Played After An Ability Attack.
-
-			-- End --
-
-		-- End --
-		
+		work = true,
+		Damage = 100,
+		DamageDistance = 10,
+		AttackStartLenght = 2,
+		AttackLenght = 2,
+		AttackDelay = 5,
+		AttackEndLenght = 2,
+		StartAttackAnimId = 12640023680,
+		AttackAnimId = 12640023680,
+		EndAttackAnimId = 12640023680,
 	},
 	ability2 = {
 		work = false,
@@ -51,65 +41,14 @@ local Abilities = {
 		AttackLenght = 2,
 		AttackDelay = 20,
 		AttackEndLenght = 2,
-
 		StartAttackAnimId = 313131,
 		AttackAnimId = 313131,
 		EndAttackAnimId = 31313,
-		
 	},
-	ability3 = {
-		work = false,
-		Damage = 15,
-		AttackStartLenght = 2,
-		AttackLenght = 2,
-		AttackDelay = 20,
-		AttackEndLenght = 2,
-
-		StartAttackAnimId = 313131,
-		AttackAnimId = 313131,
-		EndAttackAnimId = 31313,
-
-	},
-	ability4 = {
-		work = false,
-		Damage = 15,
-		AttackStartLenght = 2,
-		AttackLenght = 2,
-		AttackDelay = 20,
-		AttackEndLenght = 2,
-
-		StartAttackAnimId = 313131,
-		AttackAnimId = 313131,
-		EndAttackAnimId = 31313,
-
-	},
-	ability5 = {
-		work = false,
-		Damage = 15,
-		AttackStartLenght = 2,
-		AttackLenght = 2,
-		AttackDelay = 20,
-		AttackEndLenght = 2,
-
-		StartAttackAnimId = 313131,
-		AttackAnimId = 313131,
-		EndAttackAnimId = 31313,
-
-	},
-
-
+	-- More abilities can be added here
 }
 
--- End --
-
--- End --
-
-
--- End --
-
-
--- Script --
-
+-- Script section:
 local NPC = script.Parent
 local Humanoid = NPC.Humanoid
 local HumanoidRootPart = NPC.HumanoidRootPart

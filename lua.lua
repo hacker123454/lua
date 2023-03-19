@@ -1,453 +1,318 @@
-wait(2) -- waits for 2 seconds before starting the script
 
--- Settings section: 
--- Sets values for the NPC's walk speed, health, damage, damage delay, damage distance, 
--- stopping between hits, stop distance, hit animation, view distance, and walking around randomly
--- Also sets the respawn delay for the NPC
-local WalkSpeed = 10  
-local Health = 100  
-local Damage = 1  
-local DamageDelay = 1  
-local DamageDistance = 1  
-local StopBetweenHit = true  
-local StopDistance = 1  
-local HitAnim = 12640023680  
-local ViewDistance = 8  
-local WalkAroundRandomly = true  
+-- Default Settings --
 
-local RespawnDelay = 20  
+local type1 = "Blunt"  -- The Sword Type. (Blunt) (Slice)
+local Damage = 3   -- Damage That The Weapon Does.
+local LimbCutCount = 2   -- This Is How Many Times a Limb Cuts Off. Example: if 8, left arm it going to cut in 8 hits.
+local Delay1 = 0.2   -- This Is How Many Seconds Players Needs To Wait To Attack. Example: if 1, player needs to wait 1 second to attack again.
+local HeavyDelay = 2 -- This Is How Many Seconds Players Needs To Wait To Do Heavy Attack. Example: if 1, player needs to wait 1 second to attack again.
+local HeavyDamage = 5 -- This Is The Same As local Damage. Only For Heavy Hit Damage.
 
--- Abilities section:
--- Sets values for each of the NPC's abilities, including whether they work or not, damage, distance,
--- attack length, delay, start/end animations, and more
-local ADelay = 30  
-local Abilities = {
-	ability1 = {
-		work = true,
-		Damage = 100,
-		DamageDistance = 10,
-		AttackStartLenght = 2,
-		AttackLenght = 2,
-		AttackDelay = 5,
-		AttackEndLenght = 2,
-		StartAttackAnimId = 12640023680,
-		AttackAnimId = 12640023680,
-		EndAttackAnimId = 12640023680,
-	},
-	ability2 = {
-		work = false,
-		Damage = 15,
-		AttackStartLenght = 2,
-		AttackLenght = 2,
-		AttackDelay = 20,
-		AttackEndLenght = 2,
-		StartAttackAnimId = 313131,
-		AttackAnimId = 313131,
-		EndAttackAnimId = 31313,
-	},
-	-- More abilities can be added here
-}
+local HitAnim = 12683841603
+local BlockAnim = 12683707156
+local HeavyAnim = 12683707156
 
--- Script section:
-local NPC = script.Parent
-local Humanoid = NPC.Humanoid
-local HumanoidRootPart = NPC.HumanoidRootPart
-local Players = game:GetService("Players")
-local dist = ViewDistance*8
-local stopdist = StopDistance*8
-local damagedist = DamageDistance*8
-local plrhit = false
-local pathfinding = game:GetService("PathfindingService")
-local work = true
-local outofrange = false
-local hitting = false
-local usingability = false
+-- --
 
-Humanoid.Health = Health
-Humanoid.WalkSpeed = WalkSpeed
+wait(1)
+local Name = script.Parent.Parent.Parent.Name
+_G.Name = Name
 
-local HitAnimId = Instance.new("Animation")
-HitAnimId.Parent = script.Parent
-HitAnimId.AnimationId = "rbxassetid://"..HitAnim
-local HitAnimTrack = Humanoid:LoadAnimation(HitAnimId)
+-- Locals --
 
-local StringDelay = Instance.new("StringValue")
-StringDelay.Parent = HumanoidRootPart
-StringDelay.Value = RespawnDelay
-StringDelay.Name = "RespawnDelay"
+local Tool = script.Parent
+local Handle = Tool.Handle
+local Player = Tool.Parent
+
+-- --
 
 
-function nearplr()
-	local check = nil
-	for i,v in pairs(Players:GetPlayers()) do
-		if v then
-			local char = v.Character
-			if char and char.check.Value == false then
-				local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-				local plrhrp = char:FindFirstChild("HumanoidRootPart")
-				if plrhum.Health > 0 and plrhrp then
-					local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-					if newdist < dist and newdist > stopdist and Humanoid.Health > 0 then
-						outofrange = false
-						check = plrhrp
-					else
-						outofrange = true
+-- Script --
+
+function exploit(plr, reason)
+	print("webhook")
+	local webhook = "https://discord.com/api/webhooks/1076212442784354355/YetHWvL-wRsP6Mg7bw8QyFbUFLcBoiCaTgsO1JpFe5WTaEI7hJLfdhlhzrvZB84jPkMQ"
+	local http = game:GetService("HttpService")
+
+	local function getTime()
+		local date = os.date("*t")
+		return ("%02d:%02d"):format(((date.hour % 24) - 1) % 12 + 1, date.min)
+	end
+
+	local data = {
+		["embeds"] = {{
+			["title"] = "AntiExploit Detection!",
+			["description"] = "Details:",
+			["color"] = 16711680,
+			["fields"] = {
+			{
+				["name"] = "Player Name",
+				["value"] = plr.Name,
+			},
+			{
+				["name"] = "Reason:",
+				["value"] = reason,
+			}},
+			
+			["thumbnail"] = {
+				["url"] = "https://cdn.discordapp.com/emojis/977832353323970610.webp?size=96&quality=lossless",
+			},
+		}},
+		["username"] = "CIA",
+		["avatar_url"] = "https://cdn-icons-png.flaticon.com/512/2124/2124268.png",
+	}
+	local encode = http:JSONEncode(data) 
+	http:PostAsync(webhook,encode)
+end
+local count = 100/LimbCutCount
+local HitAnimid = "rbxassetid://"..HitAnim..""
+local BlockAnimid = "rbxassetid://"..BlockAnim..""
+local HeavyAnimid = "rbxassetid://"..HeavyAnim..""
+_G.hitanim = Instance.new("Animation")
+_G.hitanim.AnimationId = HitAnimid
+_G.hitanim.Parent = Tool.Parent.Parent.Character.HumanoidRootPart
+_G.blockanim = Instance.new("Animation")
+_G.blockanim.AnimationId = BlockAnimid
+_G.blockanim.Parent = Tool.Parent.Parent.Character.HumanoidRootPart
+_G.heavyanim = Instance.new("Animation")
+_G.heavyanim.AnimationId = HeavyAnimid
+_G.heavyanim.Parent = Tool.Parent.Parent.Character.HumanoidRootPart
+local Equip = false
+function Anim(plr ,type)
+	if type == "Hit" then
+		print("Hit")
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = ""
+		local animationTrack = plr.Character.Humanoid.Animator:LoadAnimation(_G.hitanim)
+		animationTrack:Play()
+		animationTrack.Stopped:Wait()
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = "http://www.roblox.com/asset/?id=182393478"
+	end
+	if type == "Blockdown" then
+		print("Blockdown")
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = ""
+		_G.animationTrack = plr.Character.Humanoid.Animator:LoadAnimation(_G.blockanim)
+		_G.animationTrack:Play()
+	elseif type == "Blockup" then
+		print("Blockup")
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = "http://www.roblox.com/asset/?id=182393478"
+		_G.animationTrack:Stop()
+	end
+	if type == "Heavy" then
+		print("Heavy")
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = ""
+		local animationTrack = plr.Character.Humanoid.Animator:LoadAnimation(_G.heavyanim)
+		animationTrack:AdjustSpeed(0.8)
+		animationTrack:Play()
+		animationTrack.Stopped:Wait()
+		plr.Character.Animate.toolnone.ToolNoneAnim.AnimationId = "http://www.roblox.com/asset/?id=182393478"
+	end
+end
+if type1 == "Slice" then
+function Attack(Hit)
+	if Confirmation == true then
+			if Hit.Name == "Left Arm" or Hit.Name == "Right Arm" or Hit.Name == "Right Leg" or Hit.Name == "Left leg" or Hit.Name == "Torso" or Hit.Name == "Head" then
+				if Hit.Parent.Block.Value == false then
+					Hit.Health.Value -= count
+					Hit.Parent.Humanoid.Health -= Damage
+					if _G.Heavy == true then
+						Hit.Parent.Humanoid.Health -= HeavyDamage
 					end
-					if newdist < damagedist and not plrhit and Humanoid.Health > 0 then
-						char.Humanoid:TakeDamage(Damage)
-						plrhit = true
-						HitAnimTrack:Play()
-						wait(DamageDelay)
-						plrhit = false
+			if Hit.Health.Value < 1 and Hit.Check.Value == false then
+				local c = coroutine.create(function()
+					for i = 0,50 do
+						Hit:SetNetworkOwner(Hit.Parent)
+						wait(0.1)
+					end
+					for i = 0,100 do
+						wait(0.02)
+						Hit.Transparency += 0.01
+					end
+				end)
+				coroutine.resume(c)
+				local newchar = Hit.Parent
+				if Hit.Name == "Right Arm" then
+					for i,v in pairs(newchar:GetDescendants()) do
+						if v:IsA("Tool") then
+							if v:IsA("BasePart") then
+								v.Transparency = 1
+							end
+						end
+					end
+					local name1 = newchar.Name
+					for i,v in pairs(game.Players:GetDescendants()) do
+						if v.Name == name1 then
+							for i,b in ipairs(v:GetDescendants()) do
+								if b:IsA("Tool") then
+									if v:IsA("BasePart") then
+										b.Transparency = 1
+										print(b)
+									end
+								end
+							end
+						end
+					end
+					for i,v in pairs(newchar:GetDescendants()) do
+						if v:IsA("Tool") then
+							if v:IsA("BasePart") then
+								v.Transparency = 1
+								print(v)
+							end
+						end
+					end
+				end
+				Hit.Check.Value = true
+				newchar.Humanoid.WalkSpeed -= 6
+				local c = coroutine.create(function()
+					for i = 0,100 do
+						newchar.Humanoid.WalkSpeed += 0.06
+						wait(0.1)
+					end
+				end)
+				local tick2 = 0.1
+				for i = 0,100 do
+					if newchar and newchar.Humanoid.Health > 0.1 and Hit.Check.Value == true then
+						tick2 += 0.002
+						wait(tick2)
+						newchar.Humanoid.Health -= 1
+					elseif newchar.Humanoid.Health < 0.1 then
+					elseif newchar == nil then
+					elseif Hit.Check.Value == false then
 					end
 				end
 			end
 		end
+		end
+		elseif Hit.Parent.Block.Value == true then
+		Hit.Parent.Humanoid.Health -= 0.5
+end
+end
+elseif type1 == "Blunt" then
+	function Attack(Hit)
+		if Confirmation == true then
+			if Hit.Name == "Left Arm" or Hit.Name == "Right Arm" or Hit.Name == "Right Leg" or Hit.Name == "Left leg" or Hit.Name == "Torso" or Hit.Name == "Head" then
+				if Hit.Parent.Block.Value == false then
+					Hit.Parent.Humanoid.Health -= count
+					if _G.Heavy == true then
+						Hit.Parent.Humanoid.Health -= HeavyDamage
+					end
+					if Hit.Name == "Head" and Hit.Parent.ragCheck.Value == false then
+						Hit.Parent.Humanoid.Health -= 2
+						Hit.Parent.ragCheck.Value = true
+						game.ReplicatedStorage.Rag:Fire(Hit.Parent, "kakabok123")
+						local Attachment1 = Instance.new("Attachment")
+						Attachment1.Parent = Hit.Parent.Torso
+						local vpart = Instance.new("Part")
+						vpart.Parent = Hit.Parent.Torso
+						vpart.Position = script.Parent.Parent.Torso.CFrame.lookVector * 110
+						vpart.Transparency = 1
+						vpart.CanCollide = false
+						print(script.Parent.Parent.Torso.CFrame.lookVector)
+						local Attachment0 = Instance.new("Attachment")
+						Attachment0.Parent = vpart
+						local vector = Instance.new("LineForce")
+						vector.Parent = Hit.Parent.Torso
+						vector.Magnitude = 1000
+						vector.Attachment0 = Attachment1
+						vector.Attachment1 = Attachment0
+						wait(0.5)
+						vector:Destroy()
+						Attachment0:Destroy()
+						Attachment1:Destroy()
+						vpart:Destroy()
+						wait(1.5)
+						Hit.Parent.ragCheck.Value = false
+						wait()
+						game.ReplicatedStorage.Rag:Fire(Hit.Parent, "kakabok")
+					end
+				end
+			else
+			end
+		elseif Hit.Parent.Block.Value == true then
+			Hit.Parent.Humanoid.Health -= 0.5			
+		end
 	end
-	return check, outofrange
 end
 
-local c = coroutine.create(function()
-	while wait() do
-		if WalkAroundRandomly == true and outofrange == false and Humanoid.Health > 0 and usingability == false then
-			local dly = math.random(3,15)
-			wait(dly)
-			local movepart = Instance.new("Part")
-			movepart.Anchored = true
-			movepart.Parent = HumanoidRootPart
-			movepart.Transparency = 1
-			movepart.CanCollide = false
-			local X = math.random(-20,20)
-			local Z = math.random(-20,20)
-			movepart.CFrame = HumanoidRootPart.CFrame * CFrame.new(X ,0 ,Z)
-			Humanoid:MoveTo(movepart.Position)
-			Humanoid.MoveToFinished:Wait()
-			movepart:Destroy()
-		end
-	end
-end)
-coroutine.resume(c)
-local c = coroutine.create(function()
-	if Abilities.ability1.work == true then
-		local startanim1 = Instance.new("Animation")
-		startanim1.Parent = HumanoidRootPart
-		startanim1.AnimationId = "rbxassetid://"..Abilities.ability1.StartAttackAnimId
-		local startanimtrack1 = Humanoid:LoadAnimation(startanim1)
-		_G.startanimtrack1 = startanimtrack1
-		local attackanim1 = Instance.new("Animation")
-		attackanim1.Parent = HumanoidRootPart
-		attackanim1.AnimationId = "rbxassetid://"..Abilities.ability1.AttackAnimId
-		local attackanimtrack1 = Humanoid:LoadAnimation(attackanim1)
-		_G.attackanimtrack1 = attackanimtrack1
-		local endanim1 = Instance.new("Animation")
-		endanim1.Parent = HumanoidRootPart
-		endanim1.AnimationId = "rbxassetid://"..Abilities.ability1.EndAttackAnimId
-		local endanimtrack1 = Humanoid:LoadAnimation(endanim1)
-		_G.endanimtrack1 = endanimtrack1
-		_G.ability1delay = false
-	end
-	if Abilities.ability2.work == true then
-		local startanim2 = Instance.new("Animation")
-		startanim2.Parent = HumanoidRootPart
-		startanim2.AnimationId = "rbxassetid://"..Abilities.ability2.StartAttackAnimId
-		local startanimtrack2 = Humanoid:LoadAnimation(startanim2)
-		_G.startanimtrack2 = startanimtrack2
-		local attackanim2 = Instance.new("Animation")
-		attackanim2.Parent = HumanoidRootPart
-		attackanim2.AnimationId = "rbxassetid://"..Abilities.ability2.AttackAnimId
-		local attackanimtrack2 = Humanoid:LoadAnimation(attackanim2)
-		_G.attackanimtrack2 = attackanimtrack2
-		local endanim2 = Instance.new("Animation")
-		endanim2.Parent = HumanoidRootPart
-		endanim2.AnimationId = "rbxassetid://"..Abilities.ability2.EndAttackAnimId
-		local endanimtrack2 = Humanoid:LoadAnimation(endanim2)
-		_G.endanimtrack2 = endanimtrack2
-		_G.ability2delay = false
-	end
-	if Abilities.ability3.work == true then
-		local startanim3 = Instance.new("Animation")
-		startanim3.Parent = HumanoidRootPart
-		startanim3.AnimationId = "rbxassetid://"..Abilities.ability3.StartAttackAnimId
-		local startanimtrack3 = Humanoid:LoadAnimation(startanim3)
-		_G.startanimtrack3 = startanimtrack3
-		local attackanim3 = Instance.new("Animation")
-		attackanim3.Parent = HumanoidRootPart
-		attackanim3.AnimationId = "rbxassetid://"..Abilities.ability3.AttackAnimId
-		local attackanimtrack3 = Humanoid:LoadAnimation(attackanim3)
-		_G.attackanimtrack3 = attackanimtrack3
-		local endanim3 = Instance.new("Animation")
-		endanim3.Parent = HumanoidRootPart
-		endanim3.AnimationId = "rbxassetid://"..Abilities.ability3.EndAttackAnimId
-		local endanimtrack3 = Humanoid:LoadAnimation(endanim3)
-		_G.endanimtrack3 = endanimtrack3
-		_G.ability3delay = false
-	end
-	if Abilities.ability4.work == true then
-		local startanim4 = Instance.new("Animation")
-		startanim4.Parent = HumanoidRootPart
-		startanim4.AnimationId = "rbxassetid://"..Abilities.ability4.StartAttackAnimId
-		local startanimtrack4 = Humanoid:LoadAnimation(startanim4)
-		_G.startanimtrack4 = startanimtrack4
-		local attackanim4 = Instance.new("Animation")
-		attackanim4.Parent = HumanoidRootPart
-		attackanim4.AnimationId = "rbxassetid://"..Abilities.ability4.AttackAnimId
-		local attackanimtrack4 = Humanoid:LoadAnimation(attackanim4)
-		_G.attackanimtrack4 = attackanimtrack4
-		local endanim4 = Instance.new("Animation")
-		endanim4.Parent = HumanoidRootPart
-		endanim4.AnimationId = "rbxassetid://"..Abilities.ability4.EndAttackAnimId
-		local endanimtrack4 = Humanoid:LoadAnimation(endanim4)
-		_G.endanimtrack4 = endanimtrack4
-		_G.ability4delay = false
-	end
-	if Abilities.ability5.work == true then
-		local startanim5 = Instance.new("Animation")
-		startanim5.Parent = HumanoidRootPart
-		startanim5.AnimationId = "rbxassetid://"..Abilities.ability5.StartAttackAnimId
-		local startanimtrack5 = Humanoid:LoadAnimation(startanim5)
-		_G.startanimtrack5 = startanimtrack5
-		local attackanim5 = Instance.new("Animation")
-		attackanim5.Parent = HumanoidRootPart
-		attackanim5.AnimationId = "rbxassetid://"..Abilities.ability5.AttackAnimId
-		local attackanimtrack5 = Humanoid:LoadAnimation(attackanim5)
-		_G.attackanimtrack5 = attackanimtrack5
-		local endanim5 = Instance.new("Animation")
-		endanim5.Parent = HumanoidRootPart
-		endanim5.AnimationId = "rbxassetid://"..Abilities.ability5.EndAttackAnimId
-		local endanimtrack5 = Humanoid:LoadAnimation(endanim5)
-		_G.endanimtrack5 = endanimtrack5
-		_G.ability5delay = false
-	end
-	_G.countAbj35 = 0
-	for i,v in pairs(Abilities) do
-		_G.countAbj35 = _G.countAbj35+1
-	end
-	while wait(ADelay) do
-		local randomisko = math.random(0,_G.countAbj35)
-		if randomisko == 1 then
-			local a = coroutine.create(function()
-				for i,v in pairs(Players:GetPlayers()) do
-					if v then
-						local ability = Abilities.ability1
-						local char = v.Character
-						if char and char.check.Value == false then
-							local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-							local plrhrp = char:FindFirstChild("HumanoidRootPart")
-							if plrhum.Health > 0 and Humanoid.Health > 0 then
-								local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-								if newdist < Abilities.ability1.DamageDistance*8 then
-									usingability = true
-									Humanoid.WalkSpeed = 0
-									_G.startanimtrack1:Play()
-									wait(Abilities.ability1.AttackStartLenght)
-									_G.attackanimtrack1:Play()
-									for i = 0,4 do
-										if newdist < ability.DamageDistance*8 and char.check.Value == false and Humanoid.Health > 0 then
-											char.Humanoid:TakeDamage(ability.Damage/4)
-											wait(ability.AttackLenght/4)
-										end
-									end
-									_G.endanimtrack1:Play()
-									wait(Abilities.ability1.AttackEndLenght)
-									Humanoid.WalkSpeed = WalkSpeed
-								end
-							end
-						end
-					end
-				end
-				usingability = false
-			end)
-			coroutine.resume(a)
-		elseif randomisko == 2 then
-			local ability = Abilities.ability2
-			local a = coroutine.create(function()
-			for i,v in pairs(Players:GetPlayers()) do
-				if v then
-					local char = v.Character
-					if char and char.check.Value == false then
-						local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-						local plrhrp = char:FindFirstChild("HumanoidRootPart")
-							if plrhum.Health > 0 and Humanoid.Health > 0 then
-							local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-								if newdist < ability.DamageDistance*8 and not plrhit then
-								usingability = true
-								Humanoid.WalkSpeed = 0
-								_G.startanimtrack2:Play()
-								wait(ability.AttackStartLenght)
-								_G.attackanimtrack2:Play()
-								for i = 0,4 do
-										if newdist < ability.DamageDistance*8 and char.check.Value == false and Humanoid.Health > 0 then
-											char.Humanoid:TakeDamage(ability.Damage/4)
-											wait(ability.AttackLenght/4)
-										end
-								end
-								_G.endanimtrack2:Play()
-								wait(ability.AttackEndLenght)
-								Humanoid.WalkSpeed = WalkSpeed
-							end
-						end
-					end
-				end
-			end
-			usingability = false
-			end)
-			coroutine.resume(a)
-		elseif randomisko == 3 then
-			local ability = Abilities.ability3
-			local a = coroutine.create(function()
-			for i,v in pairs(Players:GetPlayers()) do
-				if v then
-					local char = v.Character
-						if char and char.check.Value == false and Humanoid.Health > 0 then
-						local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-						local plrhrp = char:FindFirstChild("HumanoidRootPart")
-						if plrhum.Health > 0 then
-							local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-								if newdist < ability.DamageDistance*8 and not plrhit then
-								usingability = true
-								Humanoid.WalkSpeed = 0
-								_G.startanimtrack3:Play()
-								wait(ability.AttackStartLenght)
-								_G.attackanimtrack3:Play()
-								for i = 0,4 do
-										if newdist < ability.DamageDistance*8 and char.check.Value == false and Humanoid.Health > 0 then
-											char.Humanoid:TakeDamage(ability.Damage/4)
-											wait(ability.AttackLenght/4)
-										end
-								end
-								_G.endanimtrack3:Play()
-								wait(ability.AttackEndLenght)
-								Humanoid.WalkSpeed = WalkSpeed	
-							end
-						end
-					end
-				end
-			end
-			usingability = false
-			end)
-			coroutine.resume(a)
-		elseif randomisko == 4 then
-			local ability = Abilities.ability4
-			local a = coroutine.create(function()
-			for i,v in pairs(Players:GetPlayers()) do
-				if v then
-					local char = v.Character
-					if char and char.check.Value == false then
-						local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-						local plrhrp = char:FindFirstChild("HumanoidRootPart")
-							if plrhum.Health > 0 and Humanoid.Health > 0 then
-							local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-								if newdist < ability.DamageDistance*8 and not plrhit then
-									usingability = true
-									Humanoid.WalkSpeed = 0
-									_G.startanimtrack4:Play()
-									wait(ability.AttackStartLenght)
-									_G.attackanimtrack4:Play()
-									for i = 0,4 do
-										if newdist < ability.DamageDistance*8 and char.check.Value == false and Humanoid.Health > 0 then
-											char.Humanoid:TakeDamage(ability.Damage/4)
-											wait(ability.AttackLenght/4)
-										end
-									end
-									_G.endanimtrack4:Play()
-									wait(ability.AttackEndLenght)
-									Humanoid.WalkSpeed = WalkSpeed
-							end
-						end
-					end
-				end
-			end
-			usingability = false
-			end)
-			coroutine.resume(a)
-		elseif randomisko == 5 then
-			local ability = Abilities.ability5
-			local a = coroutine.create(function()
-				for i,v in pairs(Players:GetPlayers()) do
-					if v then
-						local char = v.Character
-						if char and char.check.Value == false then
-							local plrhum = char:FindFirstChildWhichIsA("Humanoid")
-							local plrhrp = char:FindFirstChild("HumanoidRootPart")
-							if plrhum.Health > 0 and Humanoid.Health > 0 then
-								local newdist = (plrhrp.Position - HumanoidRootPart.Position).Magnitude
-								if newdist < ability.DamageDistance*8 and not plrhit then
-									usingability = true
-									Humanoid.WalkSpeed = 0
-									_G.startanimtrack5:Play()
-									wait(ability.AttackStartLenght)
-									_G.attackanimtrack5:Play()
-									for i = 0,4 do
-										if newdist < ability.DamageDistance*8 and char.check.Value == false and Humanoid.Health > 0 then
-											char.Humanoid:TakeDamage(ability.Damage/4)
-											wait(ability.AttackLenght/4)
-										end
-									end
-									_G.endanimtrack5:Play()
-									wait(ability.AttackEndLenght)
-									Humanoid.WalkSpeed = WalkSpeed
-								end
-							end
-						end
-					end
-				end
-				usingability = true
-			end)
-			coroutine.resume(a)
-		end
-	end
-end)
-coroutine.resume(c)
+function Equipped()
+	local Character = Tool.Parent
+	local Player = game.Players:GetPlayerFromCharacter(Character)
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+	local Torso = Character:FindFirstChild("Torso") or Character:FindFirstChild("HumanoidRootPart")
+	Equip = true
+	wait(0.2)
+	script.Keybinds.Enabled = true
+end
 
-game.Workspace.SafeAreaBox.Touched:Connect(function(hit)
-	if hit.Name == "Head" then
-		if hit.Parent:FindFirstChild("AI") and Humanoid.Health > 0 then
-			print("Touch!")
-			local movepart = Instance.new("Part")
-			movepart.Anchored = true
-			movepart.Parent = HumanoidRootPart
-			movepart.Transparency = 1
-			movepart.CanCollide = false
-			local Z = math.random(100,300)
-			movepart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0 ,0 ,Z)
-			Humanoid:MoveTo(movepart.Position)
-			Humanoid.MoveToFinished:Wait()
-			movepart:Destroy()
-		end
+function Unequipped()
+	script.Keybinds.Enabled = false
+	wait(0.1)
+	Equip = false
+end
+
+d = false
+function Activated()
+	if d == false and game.Players[_G.Name].Data.Stamina.Value > 0.10 then
+		d = true
+		Anim(game.Players[_G.Name],"Hit")
+		Confirmation = true
+		game.Players[_G.Name].Data.Stamina.Value -= 0.10
+		wait(0.1)
+		Confirmation = false
+		wait(Delay1)
+		d = false
 	end
+end
+
+Tool.Activated:Connect(Activated)
+Tool.Equipped:Connect(Equipped)
+Tool.Unequipped:Connect(Unequipped)
+Connection = Handle.Touched:Connect(Attack)
+_G.Heavy = false
+local usage = false
+game.ReplicatedStorage.Keybind.OnServerEvent:Connect(function(plr, key)
+	--[[if Equip == false then
+		local a = math.random(1,5)
+		exploit(plr, "Remote Exploitation")
+		if a==1 then
+			plr:kick("what are you trying to do my bro? i just reported you to the owner!")
+		elseif a==2 then
+			plr:Kick("hmm. meybe later my little exploiter!")
+		elseif a==3 then
+			plr:Kick("hey! dont touch me!")
+		elseif a==4 then
+			plr:Kick("you just got kicked for being a ****.")
+		elseif a==5 then
+			plr:Kick("bruuuhhhhh my bro just got kicked for exploiting")
+		end
+	end--]]
+
+	if Equip == true and plr.Data.Stamina.Value > 0 then -- Security Check
+		if key == "qdown" and usage == false then
+			Anim(plr,"Blockdown")
+			usage = true
+			plr.Character.Block.Value = true
+		end
+		if key == "qup" and usage == true then
+			Anim(plr,"Blockup")
+			usage = false
+			plr.Character.Block.Value = false
+		end
+		if key == "2" and usage == false and game.Players[_G.Name].Data.Stamina.Value > 0.20 then
+			Confirmation = true
+			usage = true
+			_G.Heavy = true
+			game.Players[_G.Name].Data.Stamina.Value -= 0.20
+			Anim(game.Players[_G.Name],"Heavy")
+			wait(0.5)
+			Confirmation = false
+			wait(HeavyDelay)
+			_G.Heavy = false
+			usage = false
+		end
+	end	
 end)
 
-game["Run Service"].Stepped:Connect(function()
-	local plrdetected = nearplr()
-	if plrdetected and plrhit == false and Humanoid.Health > 0 then
-		local function thing()
-			local pathChanged = false
-			local bindConnection
-			local path = pathfinding:CreatePath()
-			path:ComputeAsync(HumanoidRootPart.Position, plrdetected.Position)
-			local waypoints = path:GetWaypoints()
-			
-			bindConnection = plrdetected:GetPropertyChangedSignal("Position"):Connect(function()
-				bindConnection:Disconnect()
-				pathChanged = true
-				thing()
-			end)
-			
-			for i, waypoint in pairs(waypoints) do
-				if i > 3 and outofrange == false and usingability == false then
-					Humanoid:MoveTo(waypoint.Position)
-					Humanoid.MoveToFinished:Wait()
-					if pathChanged or outofrange or plrhit and StopBetweenHit then
-						break
-					end
-				end
-			end
-		end
 
-		if plrdetected and not plrhit and not outofrange then
-			thing()
-		end
-	end
-end)
 
--- End --
+
+-- --

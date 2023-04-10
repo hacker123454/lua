@@ -1,3 +1,5 @@
+-- This is a shift to run code made by Ice & Fire.
+
 -- // Services \ --
 -- Get the UserInputService from the game service
 local userInputService = game:GetService("UserInputService")
